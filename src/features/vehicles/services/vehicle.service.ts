@@ -69,6 +69,7 @@ export interface CreateVehiclePayload {
     color: string;
     stnk: string;
     fueltype: string;
+    gpsid?: string;
     status?: number;
     owner?: number;
     groups?: number;
