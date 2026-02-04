@@ -23,7 +23,7 @@ export default function SignInForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsPending(true);
-    setState(null);
+    setState(null); 
 
     const formData = new FormData(e.currentTarget);
     const username = formData.get("username") as string;

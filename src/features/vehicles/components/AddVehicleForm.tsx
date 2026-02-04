@@ -50,7 +50,6 @@ const AddVehicleForm: React.FC<AddVehicleFormProps> = ({ onSuccess, onClose, exi
         speed_limit: 0,
         last_service: "",
         last_mileage: 0,
-        gpsid: "",
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -132,7 +131,6 @@ const AddVehicleForm: React.FC<AddVehicleFormProps> = ({ onSuccess, onClose, exi
                     speed_limit: 0,
                     last_service: "",
                     last_mileage: 0,
-                    gpsid: "",
                 });
                 setTimeout(() => {
                     onSuccess();
@@ -514,21 +512,6 @@ const AddVehicleForm: React.FC<AddVehicleFormProps> = ({ onSuccess, onClose, exi
                         name="last_mileage"
                         type="number"
                         value={formData.last_mileage}
-                        onChange={handleChange}
-                        disabled={isPending}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                </div>
-
-                {/* GPS ID */}
-                <div>
-                    <Label htmlFor="gpsid">GPS ID</Label>
-                    <input
-                        id="gpsid"
-                        name="gpsid"
-                        type="text"
-                        placeholder="GPS ID"
-                        value={formData.gpsid}
                         onChange={handleChange}
                         disabled={isPending}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
