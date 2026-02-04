@@ -23,7 +23,7 @@ export default function SignInForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsPending(true);
-    setState(null); 
+    setState(null);
 
     const formData = new FormData(e.currentTarget);
     const username = formData.get("username") as string;
@@ -36,12 +36,17 @@ export default function SignInForm() {
     setIsPending(false);
 
     if (result.success) {
-      // Store token di client-side untuk API requests
+      // Store token dan username di client-side untuk API requests
       if (result.token) {
         sessionStorage.setItem("auth_token", result.token);
         localStorage.setItem("auth_token", result.token);
         console.log("Token stored in sessionStorage and localStorage");
       }
+
+      // Store username untuk profile lookup
+      sessionStorage.setItem("username", username);
+      localStorage.setItem("username", username);
+      console.log("Username stored:", username);
 
       // Redirect after successful login
       setTimeout(() => {
