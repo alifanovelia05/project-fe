@@ -25,7 +25,6 @@ export async function loginAction(
 ): Promise<ActionResult> {
   const { username, password } = credentials;
 
-  // Validation
   if (!username || !password) {
     return {
       success: false,
@@ -34,7 +33,6 @@ export async function loginAction(
     };
   }
 
-  // Call auth service
   const result = await AuthService.login({ username, password });
 
   if (!result.success || !result.token) {
@@ -44,16 +42,8 @@ export async function loginAction(
       errorDesc: result.message || "Username atau password salah.",
     };
   }
-
-  // Set cookies
   const cookieStore = await cookies();
-
-  // 1. Auth Token (HttpOnly for security)
   cookieStore.set(AUTH_COOKIE_NAME, result.token, COOKIE_OPTIONS);
-
-  // 2. User Data (Accessible by client if needed, or keep HttpOnly)
-  // We set httpOnly: false here so client components can read basic user info easily via document.cookie if needed.
-  // Ideally, use a dedicated endpoint/action to fetch user data instead of reading cookie in client.
   if (result.user) {
     cookieStore.set(USER_COOKIE_NAME, JSON.stringify(result.user), {
       ...COOKIE_OPTIONS,
