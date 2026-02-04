@@ -10,7 +10,7 @@ const publicRoutes = ["/signin", "/signup", "/reset-password"];
 // Auth routes (redirect to dashboard if already logged in)
 const authRoutes = ["/signin", "/signup"];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Get auth token from cookies

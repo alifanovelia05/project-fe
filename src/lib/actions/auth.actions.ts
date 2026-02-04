@@ -56,6 +56,8 @@ export async function loginAction(
     successTitle: "Login Berhasil",
     successDesc: `Selamat datang, ${result.user?.realname || result.user?.username}!`,
     redirectTo: ROUTES.DASHBOARD,
+    token: result.token, // Return token untuk disimpan di client-side
+    user: result.user,
   };
 }
 

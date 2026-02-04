@@ -36,6 +36,13 @@ export default function SignInForm() {
     setIsPending(false);
 
     if (result.success) {
+      // Store token di client-side untuk API requests
+      if (result.token) {
+        sessionStorage.setItem("auth_token", result.token);
+        localStorage.setItem("auth_token", result.token);
+        console.log("Token stored in sessionStorage and localStorage");
+      }
+
       // Redirect after successful login
       setTimeout(() => {
         router.push(callbackUrl);

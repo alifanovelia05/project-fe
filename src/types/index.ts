@@ -50,4 +50,6 @@ export interface ActionResult {
   successTitle?: string;
   successDesc?: string;
   redirectTo?: string;
+  token?: string;
+  user?: User;
 }
