@@ -19,6 +19,22 @@ function getAuthToken(): string | null {
     return null;
 }
 
+function buildAuthHeaders(includeContentType = true): HeadersInit {
+    const token = getAuthToken();
+    const headers: HeadersInit = {};
+
+    if (includeContentType) {
+        headers["Content-Type"] = "application/json";
+    }
+
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+        headers["x-access-token"] = token;
+    }
+
+    return headers;
+}
+
 export interface Device {
     id: string;
     owner?: string;
@@ -49,15 +65,7 @@ export class DeviceService {
     static async getDevices(): Promise<DeviceResponse> {
         try {
             const url = `${API_BASE_URL}/device`;
-            const token = getAuthToken();
-
-            const headers: HeadersInit = {
-                "Content-Type": "application/json",
-            };
-
-            if (token) {
-                headers["Authorization"] = `Bearer ${token}`;
-            }
+            const headers = buildAuthHeaders(true);
 
             const response = await fetch(url, {
                 method: "GET",
@@ -110,10 +118,64 @@ export class DeviceService {
         }
     }
 
+    static async getDeviceById(id: string): Promise<DeviceResponse> {
+        try {
+            const url = `${API_BASE_URL}/device?id=${encodeURIComponent(id)}`;
+            const headers = buildAuthHeaders(true);
+
+            const response = await fetch(url, {
+                method: "GET",
+                headers,
+            });
+
+            const responseText = await response.text();
+            let responseData: any = null;
+            try {
+                responseData = responseText ? JSON.parse(responseText) : null;
+            } catch {
+                responseData = null;
+            }
+
+            if (!response.ok) {
+                return {
+                    success: false,
+                    message:
+                        responseData?.error?.message ||
+                        responseData?.message ||
+                        `HTTP ${response.status}: Gagal mengambil data device.`,
+                };
+            }
+
+            let devices: Device[] = [];
+            if (Array.isArray(responseData)) {
+                devices = responseData;
+            } else if (Array.isArray(responseData?.data)) {
+                devices = responseData.data;
+            } else if (responseData?.data) {
+                devices = [responseData.data];
+            } else if (Array.isArray(responseData?.result)) {
+                devices = responseData.result;
+            } else if (responseData?.result) {
+                devices = [responseData.result];
+            }
+
+            return {
+                success: true,
+                data: devices,
+                message: devices.length ? "Data device berhasil diambil." : "Data device kosong.",
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: "Terjadi kesalahan saat mengambil data device.",
+                error: error instanceof Error ? error.message : String(error),
+            };
+        }
+    }
+
     static async createDevice(payload: CreateDevicePayload): Promise<DeviceResponse> {
         try {
             const url = `${API_BASE_URL}/device`;
-            const token = getAuthToken();
 
             const cleanedPayload: any = {};
             Object.keys(payload).forEach((key) => {
@@ -123,13 +185,7 @@ export class DeviceService {
                 }
             });
 
-            const headers: HeadersInit = {
-                "Content-Type": "application/json",
-            };
-
-            if (token) {
-                headers["Authorization"] = `Bearer ${token}`;
-            }
+            const headers = buildAuthHeaders(true);
 
             const response = await fetch(url, {
                 method: "POST",
@@ -171,7 +227,6 @@ export class DeviceService {
     static async updateDevice(id: string, payload: CreateDevicePayload): Promise<DeviceResponse> {
         try {
             const url = `${API_BASE_URL}/device/${encodeURIComponent(id)}`;
-            const token = getAuthToken();
 
             const cleanedPayload: any = {};
             Object.keys(payload).forEach((key) => {
@@ -181,13 +236,7 @@ export class DeviceService {
                 }
             });
 
-            const headers: HeadersInit = {
-                "Content-Type": "application/json",
-            };
-
-            if (token) {
-                headers["Authorization"] = `Bearer ${token}`;
-            }
+            const headers = buildAuthHeaders(true);
 
             let response = await fetch(url, {
                 method: "PATCH",
@@ -237,12 +286,7 @@ export class DeviceService {
     static async deleteDevice(id: string): Promise<DeviceResponse> {
         try {
             const url = `${API_BASE_URL}/device/${encodeURIComponent(id)}`;
-            const token = getAuthToken();
-
-            const headers: HeadersInit = {};
-            if (token) {
-                headers["Authorization"] = `Bearer ${token}`;
-            }
+            const headers = buildAuthHeaders(false);
 
             const response = await fetch(url, {
                 method: "DELETE",

@@ -5,10 +5,24 @@ import { DeviceService, type CreateDevicePayload, type Device } from "../service
 import Label from "@/components/form/Label";
 
 interface AddDeviceFormProps {
-    onSuccess: () => void;
+    onSuccess: (created?: Device) => void;
     onClose: () => void;
     existingDevices: Device[];
 }
+
+const RECENT_DEVICE_IDS_KEY = "recent_device_ids";
+
+const storeRecentDeviceId = (id: string) => {
+    if (typeof window === "undefined") return;
+    try {
+        const raw = localStorage.getItem(RECENT_DEVICE_IDS_KEY);
+        const list = raw ? (JSON.parse(raw) as string[]) : [];
+        const next = [id, ...list.filter((item) => item !== id)].slice(0, 10);
+        localStorage.setItem(RECENT_DEVICE_IDS_KEY, JSON.stringify(next));
+    } catch {
+        // ignore storage errors
+    }
+};
 
 const AddDeviceForm: React.FC<AddDeviceFormProps> = ({ onSuccess, onClose, existingDevices }) => {
     const [isPending, setIsPending] = useState(false);
@@ -56,6 +70,21 @@ const AddDeviceForm: React.FC<AddDeviceFormProps> = ({ onSuccess, onClose, exist
 
             const response = await DeviceService.createDevice(payload);
             if (response.success) {
+                storeRecentDeviceId(formData.id);
+                const fallbackDevice: Device = {
+                    id: formData.id,
+                    owner: formData.owner || undefined,
+                    gsm: formData.gsm || undefined,
+                    plate: formData.plate || undefined,
+                    timezone: formData.timezone || undefined,
+                    registered: formData.registered || undefined,
+                };
+
+                let createdDevice: Device | undefined = fallbackDevice;
+                const lookup = await DeviceService.getDeviceById(formData.id);
+                if (lookup.success && lookup.data && lookup.data.length > 0) {
+                    createdDevice = lookup.data[0];
+                }
                 setSuccess("GPS berhasil ditambahkan!");
                 setFormData({
                     id: "",
@@ -66,7 +95,7 @@ const AddDeviceForm: React.FC<AddDeviceFormProps> = ({ onSuccess, onClose, exist
                     timezone: "0.00",
                 });
                 setTimeout(() => {
-                    onSuccess();
+                    onSuccess(createdDevice);
                     onClose();
                 }, 1200);
             } else {

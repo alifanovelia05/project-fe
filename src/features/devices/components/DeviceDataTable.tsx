@@ -8,6 +8,7 @@ import AddDeviceForm from "./AddDeviceForm";
 import EditDeviceForm from "./EditDeviceForm";
 
 const DeviceDataTable: React.FC = () => {
+    const RECENT_DEVICE_IDS_KEY = "recent_device_ids";
     const [devices, setDevices] = useState<Device[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -17,7 +18,58 @@ const DeviceDataTable: React.FC = () => {
     const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchHint, setSearchHint] = useState<string | null>(null);
     const itemsPerPage = 15;
+
+    const storeRecentDeviceId = (id: string) => {
+        if (typeof window === "undefined") return;
+        try {
+            const raw = localStorage.getItem(RECENT_DEVICE_IDS_KEY);
+            const list = raw ? (JSON.parse(raw) as string[]) : [];
+            const next = [id, ...list.filter((item) => item !== id)].slice(0, 10);
+            localStorage.setItem(RECENT_DEVICE_IDS_KEY, JSON.stringify(next));
+        } catch {
+            // ignore storage errors
+        }
+    };
+
+    const readRecentDeviceIds = (): string[] => {
+        if (typeof window === "undefined") return [];
+        try {
+            const raw = localStorage.getItem(RECENT_DEVICE_IDS_KEY);
+            const list = raw ? (JSON.parse(raw) as string[]) : [];
+            return Array.isArray(list) ? list.filter(Boolean) : [];
+        } catch {
+            return [];
+        }
+    };
+
+    const mergeDeviceLists = (base: Device[], extra: Device[]) => {
+        const map = new Map(base.map((device) => [device.id, device]));
+        extra.forEach((device) => {
+            if (device?.id) {
+                map.set(device.id, device);
+            }
+        });
+        return Array.from(map.values());
+    };
+
+    const fetchMissingRecentDevices = async (base: Device[]) => {
+        const recentIds = readRecentDeviceIds();
+        if (recentIds.length === 0) return [] as Device[];
+
+        const missingIds = recentIds.filter((id) => !base.some((d) => d.id === id));
+        if (missingIds.length === 0) return [] as Device[];
+
+        const responses = await Promise.all(
+            missingIds.map((id) => DeviceService.getDeviceById(id))
+        );
+
+        return responses.flatMap((response) =>
+            response.success && response.data ? response.data : []
+        );
+    };
 
     const fetchDevices = async () => {
         setIsLoading(true);
@@ -25,7 +77,9 @@ const DeviceDataTable: React.FC = () => {
         try {
             const response = await DeviceService.getDevices();
             if (response.success && response.data) {
-                setDevices(response.data);
+                const baseDevices = response.data;
+                const extraDevices = await fetchMissingRecentDevices(baseDevices);
+                setDevices(mergeDeviceLists(baseDevices, extraDevices));
             } else {
                 setError(response.message || "Gagal mengambil data device");
             }
@@ -40,16 +94,68 @@ const DeviceDataTable: React.FC = () => {
         fetchDevices();
     }, []);
 
+    useEffect(() => {
+        const query = searchQuery.trim();
+        if (!query) {
+            setSearchHint(null);
+            return;
+        }
+
+        const isNumeric = /^[0-9]+$/.test(query);
+        if (isNumeric && query.length < 15) {
+            setSearchHint("Masukkan 15 digit GPS ID untuk pencarian server.");
+            return;
+        }
+
+        setSearchHint(null);
+
+        const timer = setTimeout(async () => {
+            setIsSearching(true);
+            try {
+                const response = await DeviceService.getDeviceById(query);
+                if (response.success && response.data && response.data.length > 0) {
+                    response.data.forEach((device) => {
+                        if (device?.id) storeRecentDeviceId(device.id);
+                    });
+                    setDevices((prev) => {
+                        const map = new Map(prev.map((d) => [d.id, d]));
+                        response.data?.forEach((device) => {
+                            if (device?.id) {
+                                map.set(device.id, device);
+                            }
+                        });
+                        return Array.from(map.values());
+                    });
+                }
+            } finally {
+                setIsSearching(false);
+            }
+        }, 350);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    const sortedDevices = useMemo(() => {
+        return [...devices].sort((a, b) => {
+            const aTime = a.registered ? Date.parse(a.registered) : 0;
+            const bTime = b.registered ? Date.parse(b.registered) : 0;
+
+            if (aTime !== bTime) return bTime - aTime;
+
+            return (b.id || "").localeCompare(a.id || "");
+        });
+    }, [devices]);
+
     const filteredDevices = useMemo(() => {
-        if (!searchQuery) return devices;
+        if (!searchQuery) return sortedDevices;
         const q = searchQuery.toLowerCase();
-        return devices.filter((d) =>
+        return sortedDevices.filter((d) =>
             (d.id || "").toLowerCase().includes(q) ||
             (d.plate || "").toLowerCase().includes(q) ||
             (d.gsm || "").toLowerCase().includes(q) ||
             (d.owner || "").toLowerCase().includes(q)
         );
-    }, [devices, searchQuery]);
+    }, [sortedDevices, searchQuery]);
 
     const totalPages = Math.ceil(filteredDevices.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -151,6 +257,9 @@ const DeviceDataTable: React.FC = () => {
                     }}
                     className="flex-1 bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                 />
+                {isSearching && (
+                    <span className="text-xs text-gray-400">Mencari...</span>
+                )}
                 {searchQuery && (
                     <button
                         onClick={() => setSearchQuery("")}
@@ -160,6 +269,9 @@ const DeviceDataTable: React.FC = () => {
                     </button>
                 )}
             </div>
+            {searchHint && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">{searchHint}</p>
+            )}
 
             <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
                 <table className="min-w-full text-sm">
@@ -266,7 +378,12 @@ const DeviceDataTable: React.FC = () => {
             >
                 <AddDeviceForm
                     existingDevices={devices}
-                    onSuccess={async () => {
+                    onSuccess={async (created) => {
+                        if (created) {
+                            setDevices((prev) => mergeDeviceLists(prev, [created]));
+                            setCurrentPage(1);
+                            return;
+                        }
                         await fetchDevices();
                         setCurrentPage(1);
                     }}

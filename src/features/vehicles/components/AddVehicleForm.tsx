@@ -95,10 +95,22 @@ const AddVehicleForm: React.FC<AddVehicleFormProps> = ({ onSuccess, onClose, exi
     };
 
     const handleSelectChange = (option: any, field: string) => {
-        setFormData((prev) => ({
-            ...prev,
-            [field]: option?.value,
-        }));
+        setFormData((prev) => {
+            const updated = {
+                ...prev,
+                [field]: option?.value,
+            };
+
+            // Ketika GPS ID dipilih, auto-fill plate dari device
+            if (field === "gpsid" && option?.value) {
+                const selectedDevice = devices.find((d) => d.id === option.value);
+                if (selectedDevice && selectedDevice.plate) {
+                    updated.plate = selectedDevice.plate;
+                }
+            }
+
+            return updated;
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -200,6 +212,45 @@ const AddVehicleForm: React.FC<AddVehicleFormProps> = ({ onSuccess, onClose, exi
                 </div>
             )}
 
+            {/* GPS ID - Paling Awal */}
+            <div>
+                <Label htmlFor="gpsid">IMEI GPS ID</Label>
+                <Select
+                    inputId="gpsid"
+                    options={deviceOptions}
+                    value={deviceOptions.find((opt) => opt.value === formData.gpsid) || null}
+                    onChange={(option) => handleSelectChange(option, "gpsid")}
+                    isDisabled={isPending || isDeviceLoading}
+                    isClearable
+                    placeholder={isDeviceLoading ? "Memuat GPS..." : "Pilih GPS"}
+                    classNamePrefix="react-select"
+                    styles={{
+                        control: (base) => ({
+                            ...base,
+                            backgroundColor: document.documentElement.classList.contains("dark") ? "#1f2937" : "#ffffff",
+                            borderColor: document.documentElement.classList.contains("dark") ? "#4b5563" : "#d1d5db",
+                            color: document.documentElement.classList.contains("dark") ? "#ffffff" : "#111827",
+                        }),
+                        option: (base, state) => ({
+                            ...base,
+                            backgroundColor: state.isSelected
+                                ? "#3b82f6"
+                                : state.isFocused
+                                    ? "#f3f4f6"
+                                    : "#ffffff",
+                            color: state.isSelected ? "#ffffff" : "#111827",
+                        }),
+                        menu: (base) => ({
+                            ...base,
+                            backgroundColor: document.documentElement.classList.contains("dark") ? "#1f2937" : "#ffffff",
+                        }),
+                    }}
+                />
+                {deviceError && (
+                    <p className="mt-1 text-xs text-red-600 dark:text-red-400">{deviceError}</p>
+                )}
+            </div>
+
             {/* Three Column Layout */}
             <div className="grid grid-cols-3 gap-4">
                 {/* Plate */}
@@ -254,45 +305,6 @@ const AddVehicleForm: React.FC<AddVehicleFormProps> = ({ onSuccess, onClose, exi
                         disabled={isPending}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     />
-                </div>
-
-                {/* GPS ID */}
-                <div>
-                    <Label htmlFor="gpsid">GPS ID</Label>
-                    <Select
-                        inputId="gpsid"
-                        options={deviceOptions}
-                        value={deviceOptions.find((opt) => opt.value === formData.gpsid) || null}
-                        onChange={(option) => handleSelectChange(option, "gpsid")}
-                        isDisabled={isPending || isDeviceLoading}
-                        isClearable
-                        placeholder={isDeviceLoading ? "Memuat GPS..." : "Pilih GPS"}
-                        classNamePrefix="react-select"
-                        styles={{
-                            control: (base) => ({
-                                ...base,
-                                backgroundColor: document.documentElement.classList.contains("dark") ? "#1f2937" : "#ffffff",
-                                borderColor: document.documentElement.classList.contains("dark") ? "#4b5563" : "#d1d5db",
-                                color: document.documentElement.classList.contains("dark") ? "#ffffff" : "#111827",
-                            }),
-                            option: (base, state) => ({
-                                ...base,
-                                backgroundColor: state.isSelected
-                                    ? "#3b82f6"
-                                    : state.isFocused
-                                        ? "#f3f4f6"
-                                        : "#ffffff",
-                                color: state.isSelected ? "#ffffff" : "#111827",
-                            }),
-                            menu: (base) => ({
-                                ...base,
-                                backgroundColor: document.documentElement.classList.contains("dark") ? "#1f2937" : "#ffffff",
-                            }),
-                        }}
-                    />
-                    {deviceError && (
-                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">{deviceError}</p>
-                    )}
                 </div>
 
                 {/* Type */}
