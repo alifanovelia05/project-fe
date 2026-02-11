@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { DeviceService, type Device } from "../services/device.service";
 import Button from "@/components/ui/button/Button";
 import Modal from "@/components/ui/modal/Modal";
+import Pagination from "@/components/tables/Pagination";
 import AddDeviceForm from "./AddDeviceForm";
 import EditDeviceForm from "./EditDeviceForm";
 
@@ -329,45 +330,11 @@ const DeviceDataTable: React.FC = () => {
 
             {filteredDevices.length > 0 && totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 mt-6">
-                    <button
-                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                        disabled={currentPage === 1}
-                        className={`p-2 rounded-lg border transition-all ${currentPage === 1
-                            ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed border-gray-200 dark:border-gray-700"
-                            : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                            }`}
-                    >
-                        ←
-                    </button>
-
-                    {getPageNumbers().map((page, index) => (
-                        <button
-                            key={index}
-                            onClick={() => {
-                                if (typeof page === "number") setCurrentPage(page);
-                            }}
-                            disabled={page === "..."}
-                            className={`w-10 h-10 rounded-lg transition-all font-medium ${page === currentPage
-                                ? "bg-blue-600 text-white shadow-lg"
-                                : page === "..."
-                                    ? "text-gray-500 dark:text-gray-400 cursor-default"
-                                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                                }`}
-                        >
-                            {page}
-                        </button>
-                    ))}
-
-                    <button
-                        onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                        disabled={currentPage === totalPages}
-                        className={`p-2 rounded-lg border transition-all ${currentPage === totalPages
-                            ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed border-gray-200 dark:border-gray-700"
-                            : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                            }`}
-                    >
-                        →
-                    </button>
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                    />
                 </div>
             )}
 

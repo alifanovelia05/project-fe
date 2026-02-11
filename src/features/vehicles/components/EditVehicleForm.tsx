@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 import Select from "react-select";
 import { VehicleService, CreateVehiclePayload, Vehicle } from "../services/vehicle.service";
 import Label from "@/components/form/Label";
-import { DeviceService, type Device } from "@/features/devices/services/device.service";
 
 interface EditVehicleFormProps {
     vehicle: Vehicle;
@@ -31,16 +30,11 @@ const EditVehicleForm: React.FC<EditVehicleFormProps> = ({ vehicle, onSuccess, o
     const [isDeleting, setIsDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
-    const [deviceError, setDeviceError] = useState<string | null>(null);
-    const [isDeviceLoading, setIsDeviceLoading] = useState(false);
-    const [devices, setDevices] = useState<Device[]>([]);
-
     const [formData, setFormData] = useState({
         plate: vehicle.plate || "",
         brand: vehicle.brand || "",
         model: vehicle.model || "",
         type: vehicle.type || "",
-        gpsid: vehicle.gpsid || "",
         vehicle_type: vehicle.vehicle_type || 1,
         year: vehicle.year || new Date().getFullYear(),
         color: vehicle.color || "",
@@ -58,43 +52,6 @@ const EditVehicleForm: React.FC<EditVehicleFormProps> = ({ vehicle, onSuccess, o
         last_service: vehicle.last_service || "",
         last_mileage: vehicle.last_mileage || 0,
     });
-
-    useEffect(() => {
-        const loadDevices = async () => {
-            setIsDeviceLoading(true);
-            setDeviceError(null);
-            try {
-                const response = await DeviceService.getDevices();
-                if (response.success && response.data) {
-                    setDevices(response.data);
-                } else {
-                    setDeviceError(response.message || "Gagal mengambil data GPS");
-                }
-            } catch (err) {
-                setDeviceError(err instanceof Error ? err.message : "Terjadi kesalahan");
-            } finally {
-                setIsDeviceLoading(false);
-            }
-        };
-
-        loadDevices();
-    }, []);
-
-    const deviceOptions = useMemo(() => {
-        const options = devices.map((device) => ({
-            value: device.id,
-            label: device.plate ? `${device.plate} — ${device.id}` : device.id,
-        }));
-
-        if (formData.gpsid && !options.some((opt) => opt.value === formData.gpsid)) {
-            options.unshift({
-                value: formData.gpsid,
-                label: `GPS ${formData.gpsid}`,
-            });
-        }
-
-        return options;
-    }, [devices, formData.gpsid]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -129,7 +86,6 @@ const EditVehicleForm: React.FC<EditVehicleFormProps> = ({ vehicle, onSuccess, o
                 color: formData.color,
                 stnk: formData.stnk,
                 fueltype: formData.fueltype,
-                gpsid: formData.gpsid || undefined,
                 status: formData.status,
                 owner: formData.owner,
                 groups: formData.groups,
@@ -209,45 +165,6 @@ const EditVehicleForm: React.FC<EditVehicleFormProps> = ({ vehicle, onSuccess, o
                     <p className="text-sm text-green-600 dark:text-green-400">{success}</p>
                 </div>
             )}
-
-            {/* GPS ID - Paling Awal */}
-            <div>
-                <Label htmlFor="gpsid">IMEI GPS ID</Label>
-                <Select
-                    inputId="gpsid"
-                    options={deviceOptions}
-                    value={deviceOptions.find((opt) => opt.value === formData.gpsid) || null}
-                    onChange={(option) => handleSelectChange(option, "gpsid")}
-                    isDisabled={isPending || isDeleting || isDeviceLoading}
-                    isClearable
-                    placeholder={isDeviceLoading ? "Memuat GPS..." : "Pilih GPS"}
-                    classNamePrefix="react-select"
-                    styles={{
-                        control: (base) => ({
-                            ...base,
-                            backgroundColor: document.documentElement.classList.contains("dark") ? "#1f2937" : "#ffffff",
-                            borderColor: document.documentElement.classList.contains("dark") ? "#4b5563" : "#d1d5db",
-                            color: document.documentElement.classList.contains("dark") ? "#ffffff" : "#111827",
-                        }),
-                        option: (base, state) => ({
-                            ...base,
-                            backgroundColor: state.isSelected
-                                ? "#3b82f6"
-                                : state.isFocused
-                                    ? "#f3f4f6"
-                                    : "#ffffff",
-                            color: state.isSelected ? "#ffffff" : "#111827",
-                        }),
-                        menu: (base) => ({
-                            ...base,
-                            backgroundColor: document.documentElement.classList.contains("dark") ? "#1f2937" : "#ffffff",
-                        }),
-                    }}
-                />
-                {deviceError && (
-                    <p className="mt-1 text-xs text-red-600 dark:text-red-400">{deviceError}</p>
-                )}
-            </div>
 
             {/* Three Column Layout */}
             <div className="grid grid-cols-3 gap-4">

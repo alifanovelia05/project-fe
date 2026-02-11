@@ -5,8 +5,10 @@ import Badge from "@/components/ui/badge/Badge";
 import Button from "@/components/ui/button/Button";
 import { VehicleService, Vehicle } from "../services/vehicle.service";
 import Modal from "@/components/ui/modal/Modal";
+import Pagination from "@/components/tables/Pagination";
 import AddVehicleForm from "./AddVehicleForm";
 import EditVehicleForm from "./EditVehicleForm";
+import AssignGpsForm from "./AssignGpsForm";
 
 const getBrandLogo = (brand: string | undefined): string => {
     const logoMap: { [key: string]: string } = {
@@ -34,7 +36,9 @@ const VehicleDataTable: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isAssignGpsModalOpen, setIsAssignGpsModalOpen] = useState(false);
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+    const [assignGpsVehicle, setAssignGpsVehicle] = useState<Vehicle | null>(null);
     const itemsPerPage = 12;
 
     const fetchVehicles = async () => {
@@ -308,7 +312,16 @@ const VehicleDataTable: React.FC = () => {
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div className="pt-3 border-t border-gray-200 dark:border-gray-700 flex gap-2">
+                                <div className="pt-3 border-t border-gray-200 dark:border-gray-700 flex flex-col gap-2">
+                                    <button
+                                        onClick={() => {
+                                            setAssignGpsVehicle(vehicle);
+                                            setIsAssignGpsModalOpen(true);
+                                        }}
+                                        className="w-full px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 font-medium text-sm transition-colors"
+                                    >
+                                        ➕ Tambah GPS
+                                    </button>
                                     <button
                                         onClick={() => {
                                             setSelectedVehicle(vehicle);
@@ -334,50 +347,11 @@ const VehicleDataTable: React.FC = () => {
             {/* Pagination Section */}
             {filteredVehicles.length > 0 && totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 mt-8">
-                    {/* Previous Button */}
-                    <button
-                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                        disabled={currentPage === 1}
-                        className={`p-2 rounded-lg border transition-all ${currentPage === 1
-                            ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed border-gray-200 dark:border-gray-700"
-                            : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                            }`}
-                    >
-                        ←
-                    </button>
-
-                    {/* Page Numbers */}
-                    {getPageNumbers().map((page, index) => (
-                        <button
-                            key={index}
-                            onClick={() => {
-                                if (typeof page === "number") {
-                                    setCurrentPage(page);
-                                }
-                            }}
-                            disabled={page === "..."}
-                            className={`w-10 h-10 rounded-lg transition-all font-medium ${page === currentPage
-                                ? "bg-blue-600 text-white shadow-lg"
-                                : page === "..."
-                                    ? "text-gray-500 dark:text-gray-400 cursor-default"
-                                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                                }`}
-                        >
-                            {page}
-                        </button>
-                    ))}
-
-                    {/* Next Button */}
-                    <button
-                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                        disabled={currentPage === totalPages}
-                        className={`p-2 rounded-lg border transition-all ${currentPage === totalPages
-                            ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed border-gray-200 dark:border-gray-700"
-                            : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                            }`}
-                    >
-                        →
-                    </button>
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                    />
                 </div>
             )}
 
@@ -420,6 +394,30 @@ const VehicleDataTable: React.FC = () => {
                         onDelete={async () => {
                             await fetchVehicles();
                             setCurrentPage(1);
+                        }}
+                    />
+                )}
+            </Modal>
+
+            {/* Assign GPS Modal */}
+            <Modal
+                isOpen={isAssignGpsModalOpen}
+                title={`Tambah GPS - ${assignGpsVehicle?.plate}`}
+                onClose={() => {
+                    setIsAssignGpsModalOpen(false);
+                    setAssignGpsVehicle(null);
+                }}
+            >
+                {assignGpsVehicle && (
+                    <AssignGpsForm
+                        vehicle={assignGpsVehicle}
+                        onSuccess={async () => {
+                            await fetchVehicles();
+                            setCurrentPage(1);
+                        }}
+                        onClose={() => {
+                            setIsAssignGpsModalOpen(false);
+                            setAssignGpsVehicle(null);
                         }}
                     />
                 )}

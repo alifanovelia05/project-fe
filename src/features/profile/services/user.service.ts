@@ -43,6 +43,24 @@ export interface CurrentUserResponse {
     error?: string;
 }
 
+export interface UserPayload {
+    username: string;
+    email: string;
+    name: string;
+    status: number;
+    type: number;
+    parent: number;
+    group: number;
+    menu: string;
+}
+
+export interface UserMutationResponse {
+    success: boolean;
+    data?: User;
+    message?: string;
+    error?: string;
+}
+
 export class UserService {
     /**
      * Get all users
@@ -105,6 +123,143 @@ export class UserService {
             return {
                 success: false,
                 message: "Terjadi kesalahan saat mengambil data user",
+                error: error instanceof Error ? error.message : String(error),
+            };
+        }
+    }
+
+    /**
+     * Create user
+     */
+    static async createUser(payload: UserPayload): Promise<UserMutationResponse> {
+        try {
+            const url = `${API_BASE_URL}/users`;
+            const token = getAuthToken();
+
+            const headers: HeadersInit = {
+                "Content-Type": "application/json",
+            };
+
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers,
+                body: JSON.stringify(payload),
+            });
+
+            const responseText = await response.text();
+            const responseData = responseText ? JSON.parse(responseText) : null;
+
+            if (!response.ok) {
+                return {
+                    success: false,
+                    message: responseData?.message || "Gagal menambah user",
+                };
+            }
+
+            return {
+                success: true,
+                data: responseData?.data || responseData,
+                message: responseData?.message || "User berhasil ditambah",
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: "Terjadi kesalahan saat menambah user",
+                error: error instanceof Error ? error.message : String(error),
+            };
+        }
+    }
+
+    /**
+     * Update user
+     */
+    static async updateUser(id: number, payload: UserPayload): Promise<UserMutationResponse> {
+        try {
+            const url = `${API_BASE_URL}/users/${id}`;
+            const token = getAuthToken();
+
+            const headers: HeadersInit = {
+                "Content-Type": "application/json",
+            };
+
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(url, {
+                method: "PUT",
+                headers,
+                body: JSON.stringify(payload),
+            });
+
+            const responseText = await response.text();
+            const responseData = responseText ? JSON.parse(responseText) : null;
+
+            if (!response.ok) {
+                return {
+                    success: false,
+                    message: responseData?.message || "Gagal memperbarui user",
+                };
+            }
+
+            return {
+                success: true,
+                data: responseData?.data || responseData,
+                message: responseData?.message || "User berhasil diperbarui",
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: "Terjadi kesalahan saat memperbarui user",
+                error: error instanceof Error ? error.message : String(error),
+            };
+        }
+    }
+
+    /**
+     * Delete user
+     */
+    static async deleteUser(id: number): Promise<UserMutationResponse> {
+        try {
+            const url = `${API_BASE_URL}/users/${id}`;
+            const token = getAuthToken();
+
+            const headers: HeadersInit = {
+                "Content-Type": "application/json",
+            };
+
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(url, {
+                method: "DELETE",
+                headers,
+            });
+
+            const responseText = await response.text();
+            const responseData = responseText ? JSON.parse(responseText) : null;
+
+            if (!response.ok) {
+                return {
+                    success: false,
+                    message: responseData?.message || "Gagal menghapus user",
+                };
+            }
+
+            return {
+                success: true,
+                data: responseData?.data || responseData,
+                message: responseData?.message || "User berhasil dihapus",
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: "Terjadi kesalahan saat menghapus user",
                 error: error instanceof Error ? error.message : String(error),
             };
         }

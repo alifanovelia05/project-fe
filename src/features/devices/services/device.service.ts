@@ -120,29 +120,48 @@ export class DeviceService {
 
     static async getDeviceById(id: string): Promise<DeviceResponse> {
         try {
-            const url = `${API_BASE_URL}/device?id=${encodeURIComponent(id)}`;
             const headers = buildAuthHeaders(true);
+            const urls = [
+                `${API_BASE_URL}/device?id=${encodeURIComponent(id)}`,
+                `${API_BASE_URL}/device/${encodeURIComponent(id)}`,
+            ];
 
-            const response = await fetch(url, {
-                method: "GET",
-                headers,
-            });
-
-            const responseText = await response.text();
+            let response: Response | null = null;
             let responseData: any = null;
-            try {
-                responseData = responseText ? JSON.parse(responseText) : null;
-            } catch {
-                responseData = null;
+            let responseText = "";
+
+            for (const url of urls) {
+                const attempt = await fetch(url, {
+                    method: "GET",
+                    headers,
+                });
+
+                responseText = await attempt.text();
+                try {
+                    responseData = responseText ? JSON.parse(responseText) : null;
+                } catch {
+                    responseData = null;
+                }
+
+                if (attempt.ok) {
+                    response = attempt;
+                    break;
+                }
+
+                response = attempt;
+
+                if (attempt.status !== 404) {
+                    break;
+                }
             }
 
-            if (!response.ok) {
+            if (!response || !response.ok) {
                 return {
                     success: false,
                     message:
                         responseData?.error?.message ||
                         responseData?.message ||
-                        `HTTP ${response.status}: Gagal mengambil data device.`,
+                        `HTTP ${response?.status ?? 0}: Gagal mengambil data device.`,
                 };
             }
 
@@ -226,7 +245,7 @@ export class DeviceService {
 
     static async updateDevice(id: string, payload: CreateDevicePayload): Promise<DeviceResponse> {
         try {
-            const url = `${API_BASE_URL}/device/${encodeURIComponent(id)}`;
+            const url = `${API_BASE_URL}/device?id=${encodeURIComponent(id)}`;
 
             const cleanedPayload: any = {};
             Object.keys(payload).forEach((key) => {

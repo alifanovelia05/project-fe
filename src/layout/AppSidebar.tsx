@@ -12,10 +12,12 @@ import {
   HorizontaLDots,
   ListIcon,
   PageIcon,
+  PaperPlaneIcon,
   PieChartIcon,
   PlugInIcon,
+  TaskIcon,
   TableIcon,
-  UserCircleIcon,
+  UserIcon,
 } from "../icons/index";
 
 type NavItem = {
@@ -56,13 +58,18 @@ const navItems: NavItem[] = [
   },
   {
     name: "Kendaraan",
-    icon: <TableIcon />,
+    icon: <TaskIcon />,
     path: "/kendaraan",
   },
   {
     name: "GPS",
-    icon: <TableIcon />,
+    icon: <PaperPlaneIcon />,
     path: "/device",
+  },
+  {
+    name: "Pengguna",
+    icon: <UserIcon />,
+    path: "/users",
   },
 ];
 

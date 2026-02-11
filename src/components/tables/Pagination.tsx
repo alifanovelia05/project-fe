@@ -9,43 +9,77 @@ const Pagination: React.FC<PaginationProps> = ({
   totalPages,
   onPageChange,
 }) => {
-  const pagesAroundCurrent = Array.from(
-    { length: Math.min(3, totalPages) },
-    (_, i) => i + Math.max(currentPage - 1, 1)
-  );
+  const getPageItems = () => {
+    const pages: Array<number | string> = [];
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i += 1) pages.push(i);
+      return pages;
+    }
+
+    const windowStart = Math.max(2, currentPage - 1);
+    const windowEnd = Math.min(totalPages - 1, currentPage + 1);
+
+    pages.push(1);
+    if (windowStart > 2) pages.push("...");
+    for (let i = windowStart; i <= windowEnd; i += 1) pages.push(i);
+    if (windowEnd < totalPages - 1) pages.push("...");
+    pages.push(totalPages);
+
+    return pages;
+  };
+
+  const pageItems = getPageItems();
+
+  const prevDisabled = currentPage === 1;
+  const nextDisabled = currentPage === totalPages;
+
+  const navButtonClass = (disabled: boolean) =>
+    `p-2 rounded-lg border transition-all ${disabled
+      ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed border-gray-200 dark:border-gray-700"
+      : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+    }`;
+
+  const pageButtonClass = (item: number | string) => {
+    if (item === currentPage) {
+      return "w-10 h-10 rounded-lg transition-all font-medium bg-blue-600 text-white shadow-lg";
+    }
+
+    if (item === "...") {
+      return "w-10 h-10 rounded-lg transition-all font-medium text-gray-500 dark:text-gray-400 cursor-default";
+    }
+
+    return "w-10 h-10 rounded-lg transition-all font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700";
+  };
 
   return (
-    <div className="flex items-center ">
+    <div className="flex items-center gap-2">
       <button
         onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className="mr-2.5 flex items-center h-10 justify-center rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-gray-700 shadow-theme-xs hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] text-sm"
+        disabled={prevDisabled}
+        aria-label="Previous page"
+        className={navButtonClass(prevDisabled)}
       >
-        Previous
+        ←
       </button>
-      <div className="flex items-center gap-2">
-        {currentPage > 3 && <span className="px-2">...</span>}
-        {pagesAroundCurrent.map((page) => (
-          <button
-            key={page}
-            onClick={() => onPageChange(page)}
-            className={`px-4 py-2 rounded ${
-              currentPage === page
-                ? "bg-brand-500 text-white"
-                : "text-gray-700 dark:text-gray-400"
-            } flex w-10 items-center justify-center h-10 rounded-lg text-sm font-medium hover:bg-blue-500/[0.08] hover:text-brand-500 dark:hover:text-brand-500`}
-          >
-            {page}
-          </button>
-        ))}
-        {currentPage < totalPages - 2 && <span className="px-2">...</span>}
-      </div>
+      {pageItems.map((item, index) => (
+        <button
+          key={typeof item === "number" ? item : `ellipsis-${index}`}
+          onClick={() => {
+            if (typeof item === "number") onPageChange(item);
+          }}
+          disabled={item === "..."}
+          className={pageButtonClass(item)}
+        >
+          {item}
+        </button>
+      ))}
       <button
         onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className="ml-2.5 flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-gray-700 shadow-theme-xs text-sm hover:bg-gray-50 h-10 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+        disabled={nextDisabled}
+        aria-label="Next page"
+        className={navButtonClass(nextDisabled)}
       >
-        Next
+        →
       </button>
     </div>
   );
