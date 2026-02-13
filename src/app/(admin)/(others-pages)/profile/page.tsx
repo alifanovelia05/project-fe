@@ -1,17 +1,17 @@
 "use client";
 
-import { UserAddressCard, UserInfoCard, UserMetaCard, UserService, type User } from "@/features/profile";
+import { UserAddressCard, UserInfoCard, UserMetaCard, ProfileService, type ProfileUser } from "@/features/profile";
 import React, { useEffect, useState } from "react";
 
 export default function Profile() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<ProfileUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
       setIsLoading(true);
-      const response = await UserService.getCurrentUser();
+      const response = await ProfileService.getCurrentUser();
 
       if (response.success && response.data) {
         setUser(response.data);

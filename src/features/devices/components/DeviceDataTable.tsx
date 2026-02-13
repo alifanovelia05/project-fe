@@ -235,7 +235,15 @@ const DeviceDataTable: React.FC = () => {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Daftar GPS</h2>
+                <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Daftar GPS</h2>
+                    {!isLoading && devices.length > 0 && (
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Menampilkan {filteredDevices.length} dari {devices.length} GPS
+                            {searchQuery && ` (filter: "${searchQuery}")`}
+                        </p>
+                    )}
+                </div>
                 <Button
                     onClick={() => setIsAddModalOpen(true)}
                     className="bg-brand-600 hover:bg-brand-700 text-white"
@@ -278,6 +286,7 @@ const DeviceDataTable: React.FC = () => {
                 <table className="min-w-full text-sm">
                     <thead className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
                         <tr>
+                            <th className="px-4 py-3 text-left font-medium">No</th>
                             <th className="px-4 py-3 text-left font-medium">GPS ID (IMEI)</th>
                             <th className="px-4 py-3 text-left font-medium">Plate</th>
                             <th className="px-4 py-3 text-left font-medium">GSM</th>
@@ -289,13 +298,16 @@ const DeviceDataTable: React.FC = () => {
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
                         {filteredDevices.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+                                <td colSpan={7} className="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
                                     Tidak ada data GPS.
                                 </td>
                             </tr>
                         ) : (
-                            paginatedDevices.map((device) => (
+                            paginatedDevices.map((device, index) => (
                                 <tr key={device.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
+                                        {startIndex + index + 1}
+                                    </td>
                                     <td className="px-4 py-3 font-mono text-gray-900 dark:text-gray-100">{device.id}</td>
                                     <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{device.plate || "-"}</td>
                                     <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{device.gsm || "-"}</td>

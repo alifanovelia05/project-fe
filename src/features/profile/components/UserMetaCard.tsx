@@ -6,10 +6,10 @@ import Button from "../../../components/ui/button/Button";
 import Input from "../../../components/form/input/InputField";
 import Label from "../../../components/form/Label";
 import Image from "next/image";
-import { User } from "../services/user.service";
+import { type ProfileUser } from "../services/profile.service";
 
 interface UserMetaCardProps {
-    user: User | null;
+    user: ProfileUser | null;
 }
 
 export default function UserMetaCard({ user }: UserMetaCardProps) {

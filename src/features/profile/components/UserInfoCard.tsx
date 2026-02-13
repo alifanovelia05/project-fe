@@ -5,10 +5,10 @@ import { Modal } from "../../../components/ui/modal";
 import Button from "../../../components/ui/button/Button";
 import Input from "../../../components/form/input/InputField";
 import Label from "../../../components/form/Label";
-import { User } from "../services/user.service";
+import { type ProfileUser } from "../services/profile.service";
 
 interface UserInfoCardProps {
-    user: User | null;
+    user: ProfileUser | null;
 }
 
 export default function UserInfoCard({ user }: UserInfoCardProps) {

@@ -38,10 +38,10 @@ axiosInstance.interceptors.request.use(
         }
 
         // Disable caching untuk GET requests (selalu ambil data fresh)
-        if (config.method?.toLowerCase() === 'get') {
-            config.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
-            config.headers['Pragma'] = 'no-cache';
-            config.headers['Expires'] = '0';
+        if (config.method?.toLowerCase() === "get") {
+            config.headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+            config.headers["Pragma"] = "no-cache";
+            config.headers["Expires"] = "0";
         }
 
         return config;
@@ -389,4 +389,3 @@ export class UserService {
         }
     }
 }
-

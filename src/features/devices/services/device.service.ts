@@ -64,7 +64,7 @@ export interface CreateDevicePayload {
 export class DeviceService {
     static async getDevices(): Promise<DeviceResponse> {
         try {
-            const url = `${API_BASE_URL}/device`;
+            const url = `${API_BASE_URL}/device?$limit=1000`;
             const headers = buildAuthHeaders(true);
 
             const response = await fetch(url, {

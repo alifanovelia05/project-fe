@@ -1,7 +1,7 @@
 import React from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadCrumb from "@/components/common/PageBreadCrumb";
-import UserDataTable from "@/features/profile/components/UserDataTable";
+import UserDataTable from "@/features/users/components/UserDataTable";
 
 export default function UsersPage() {
     return (
