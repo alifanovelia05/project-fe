@@ -5,7 +5,7 @@ import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
-import { User } from "@/services/user.service";
+import { User } from "@/features/users/services/user.service";
 
 interface UserAddressCardProps {
   user: User | null;

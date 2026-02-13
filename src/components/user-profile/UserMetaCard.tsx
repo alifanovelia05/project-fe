@@ -6,7 +6,7 @@ import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import Image from "next/image";
-import { User } from "@/services/user.service";
+import { User } from "@/features/users/services/user.service";
 
 interface UserMetaCardProps {
   user: User | null;

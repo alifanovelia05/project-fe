@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { AuthService } from "@/services/auth.service";
+import { AuthService } from "@/features/auth/services/auth.service";
 import {
   AUTH_COOKIE_NAME,
   USER_COOKIE_NAME,
