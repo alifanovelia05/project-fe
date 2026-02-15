@@ -67,6 +67,11 @@ const navItems: NavItem[] = [
     path: "/device",
   },
   {
+    name: "Monitoring",
+    icon: <PieChartIcon />,
+    path: "/monitoring",
+  },
+  {
     name: "Pengguna",
     icon: <UserIcon />,
     path: "/users",
