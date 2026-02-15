@@ -190,7 +190,7 @@ const MonitoringDashboard: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex flex-col gap-4 p-4">
-                    <div className="h-[60vh] md:h-[520px] lg:h-[620px] xl:h-[720px] w-full overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div className="h-[60vh] md:h-130 lg:h-155 xl:h-180 w-full overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
                         <MonitoringMap
                             items={statusFilteredItems}
                             selectedId={selectedId}
@@ -276,7 +276,7 @@ const MonitoringDashboard: React.FC = () => {
                     </div>
                 </div>
                 <div className="max-w-full overflow-x-auto">
-                    <div className="min-w-[1200px]">
+                    <div className="min-w-300">
                         <Table>
                             <TableHeader className="border-b border-gray-100 dark:border-gray-800">
                                 <TableRow>
