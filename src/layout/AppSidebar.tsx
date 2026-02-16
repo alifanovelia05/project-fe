@@ -72,6 +72,11 @@ const navItems: NavItem[] = [
     path: "/monitoring",
   },
   {
+    name: "Menu",
+    icon: <ListIcon />,
+    path: "/menu",
+  },
+  {
     name: "Pengguna",
     icon: <UserIcon />,
     path: "/users",

@@ -69,7 +69,7 @@ export interface MonitoringResponse {
 
 export class MonitoringService {
     static async getMonitoring(): Promise<MonitoringResponse> {
-        const urls = [API_ENDPOINTS.MONITORING, `${API_BASE_URL}/monitoring`];
+        const urls = [API_ENDPOINTS.MONITORING, `${API_BASE_URL}/monitoring?lastTime=2010-01-01T00%3A00%3A00Z&$order=waktu&$sort=DESC&allowed_id=null&$limit=500`];
         const headers = buildAuthHeaders();
 
         try {

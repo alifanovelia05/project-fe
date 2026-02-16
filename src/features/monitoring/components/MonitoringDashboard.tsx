@@ -66,25 +66,50 @@ const MonitoringDashboard: React.FC = () => {
     const itemsPerPage = 10;
 
     useEffect(() => {
-        const fetchMonitoring = async () => {
-            setIsLoading(true);
+        let isActive = true;
+
+        const fetchMonitoring = async (showLoading: boolean) => {
+            if (showLoading) {
+                setIsLoading(true);
+            }
             try {
                 const response = await MonitoringService.getMonitoring();
+                if (!isActive) return;
+
                 if (response.success && response.data) {
-                    setItems(response.data);
-                    setSelectedId(response.data[0]?.id ?? null);
+                    const nextItems = response.data;
+                    setItems(nextItems);
+                    setSelectedId((prevSelectedId) => {
+                        if (prevSelectedId && nextItems.some((item) => item.id === prevSelectedId)) {
+                            return prevSelectedId;
+                        }
+                        return nextItems[0]?.id ?? null;
+                    });
                     setError(null);
                 } else {
                     setError(response.message || "Gagal mengambil data monitoring");
                 }
             } catch (err) {
+                if (!isActive) return;
                 setError(err instanceof Error ? err.message : "Terjadi kesalahan");
             } finally {
-                setIsLoading(false);
+                if (!isActive) return;
+                if (showLoading) {
+                    setIsLoading(false);
+                }
             }
         };
 
-        fetchMonitoring();
+        fetchMonitoring(true);
+
+        const intervalId = window.setInterval(() => {
+            fetchMonitoring(false);
+        }, 30000);
+
+        return () => {
+            isActive = false;
+            window.clearInterval(intervalId);
+        };
     }, []);
 
     const filteredItems = useMemo(() => {

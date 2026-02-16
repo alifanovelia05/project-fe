@@ -8,6 +8,13 @@ export const API_ENDPOINTS = {
   REGISTER: `${API_BASE_URL}/auth/register`,
   PROFILE: (userId: number) => `${API_BASE_URL}/${API_VERSION}/users/${userId}`,
   MONITORING: `${API_BASE_URL}/${API_VERSION}/monitoring`,
+  KLASIFIKASI: (kategori: string, limit?: number) => {
+    const params = new URLSearchParams({ kategori });
+    if (Number.isFinite(limit)) {
+      params.append("$limit", String(limit));
+    }
+    return `${API_BASE_URL}/klasifikasi?${params.toString()}`;
+  },
 } as const;
 
 // Auth Cookie Names
