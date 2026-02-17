@@ -10,24 +10,40 @@ const DEFAULT_CENTER: [number, number] = [-2.5, 118.0];
 const DEFAULT_ZOOM = 5;
 const FOCUSED_ZOOM = 16;
 
-const createCarIcon = (color = "#2563eb") =>
+const createCarIcon = (color = "#2563eb", plate = "") =>
     L.divIcon({
         className: "monitoring-car-icon",
-        iconSize: [36, 36],
-        iconAnchor: [18, 28],
-        popupAnchor: [0, -28],
+        iconSize: [80, 50],
+        iconAnchor: [40, 45],
+        popupAnchor: [0, -45],
         html: `
-            <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="18" cy="18" r="16" fill="${color}" fill-opacity="0.15" />
-                <rect x="8" y="14" width="20" height="8" rx="2" fill="${color}" />
-                <rect x="11" y="11" width="14" height="5" rx="2" fill="${color}" />
-                <circle cx="12" cy="24" r="3" fill="#111827" />
-                <circle cx="24" cy="24" r="3" fill="#111827" />
-            </svg>
+            <div style="position: relative; width: 80px;">
+                <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto; display: block;">
+                    <circle cx="18" cy="18" r="16" fill="${color}" fill-opacity="0.15" />
+                    <rect x="8" y="14" width="20" height="8" rx="2" fill="${color}" />
+                    <rect x="11" y="11" width="14" height="5" rx="2" fill="${color}" />
+                    <circle cx="12" cy="24" r="3" fill="#111827" />
+                    <circle cx="24" cy="24" r="3" fill="#111827" />
+                </svg>
+                ${plate ? `
+                    <div style="
+                        background: rgba(255, 255, 255, 0.95);
+                        backdrop-filter: blur(4px);
+                        border: 1px solid rgba(0, 0, 0, 0.1);
+                        border-radius: 3px;
+                        padding: 2px 4px;
+                        font-size: 10px;
+                        font-weight: 600;
+                        text-align: center;
+                        white-space: nowrap;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                        color: #222;
+                        margin-top: 2px;
+                    ">${plate}</div>
+                ` : ''}
+            </div>
         `.trim(),
     });
-
-const markerIcon = createCarIcon();
 
 function FitBounds({ points, enabled }: { points: Array<[number, number]>; enabled: boolean }) {
     const map = useMap();
@@ -81,25 +97,82 @@ function ClusteredMarkers({
             zoomToBoundsOnClick: true,
         });
 
+        const getEngineState = (item: MonitoringItem) => {
+            if (typeof item.additional?.accel === "number") {
+                return item.additional.accel > 0 ? "ON" : "OFF";
+            }
+            if (item.input && item.input.length > 0) {
+                return item.input[0] === "1" ? "ON" : "OFF";
+            }
+            if ((item.speed || 0) > 0) return "ON";
+            return "OFF";
+        };
+
+        const formatNumber = (value?: number, suffix = "") => {
+            if (!Number.isFinite(value)) return "-";
+            return `${new Intl.NumberFormat("id-ID").format(value || 0)}${suffix}`;
+        };
+
         items.forEach((item) => {
             const lat = Number(item.latitude);
             const lng = Number(item.longitude);
             if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
-            const marker = L.marker([lat, lng], { icon: markerIcon });
             const title = item.plate || item.id;
             const location = item.lokasi || "Lokasi tidak tersedia";
+            const engineState = getEngineState(item);
+            const speed = formatNumber(item.speed, " km/h");
+            const satelit = formatNumber(item.satelit);
+            const gsm = item.additional?.gsm?.name || formatNumber(item.additional?.signal);
+            const batt = item.additional?.batt || "-";
+            const mileage = formatNumber((item.mileage || 0) / 1000, " km");
 
-            marker.bindPopup(
-                `<div class="space-y-1">
-                    <p class="text-sm font-semibold text-gray-900">${title}</p>
-                    <p class="text-xs text-gray-600">${location}</p>
-                </div>`
-            );
-            marker.bindTooltip(title, {
+            // Create icon with plate number
+            const itemIcon = createCarIcon("#2563eb", title);
+            const marker = L.marker([lat, lng], { icon: itemIcon });
+
+            // Create a detailed tooltip with vehicle information
+            const tooltipContent = `
+                <div style="min-width: 250px;">
+                    <div style="font-weight: 600; margin-bottom: 8px; font-size: 13px;">${title}</div>
+                    <table style="font-size: 12px; width: 100%; border-collapse: collapse;">
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 4px 8px; color: #666;">Status Mesin</td>
+                            <td style="padding: 4px 8px; text-align: right; font-weight: 500; color: ${engineState === "ON" ? "#10b981" : "#ef4444"};">${engineState}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 4px 8px; color: #666;">Laju</td>
+                            <td style="padding: 4px 8px; text-align: right; font-weight: 500;">${speed}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 4px 8px; color: #666;">GPS Satelit</td>
+                            <td style="padding: 4px 8px; text-align: right; font-weight: 500;">${satelit}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 4px 8px; color: #666;">GSM Signal</td>
+                            <td style="padding: 4px 8px; text-align: right; font-weight: 500;">${gsm}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 4px 8px; color: #666;">Battery GPS</td>
+                            <td style="padding: 4px 8px; text-align: right; font-weight: 500;">${batt}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 4px 8px; color: #666;">Mileage</td>
+                            <td style="padding: 4px 8px; text-align: right; font-weight: 500;">${mileage}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="padding: 6px 8px; color: #666; font-size: 11px; padding-top: 8px;">${location}</td>
+                        </tr>
+                    </table>
+                </div>
+            `;
+
+            marker.bindTooltip(tooltipContent, {
                 direction: "top",
                 offset: [0, -8],
-                opacity: 0.9,
+                opacity: 0.95,
+                permanent: false,
+                sticky: true,
             });
 
             marker.on("click", () => onSelect?.(item));

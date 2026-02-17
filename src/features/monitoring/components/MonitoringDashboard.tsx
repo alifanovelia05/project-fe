@@ -306,6 +306,7 @@ const MonitoringDashboard: React.FC = () => {
                             <TableHeader className="border-b border-gray-100 dark:border-gray-800">
                                 <TableRow>
                                     {[
+                                        "No",
                                         "Plat",
                                         "Waktu GPS",
                                         "Mesin",
@@ -348,6 +349,9 @@ const MonitoringDashboard: React.FC = () => {
                                                     : "hover:bg-gray-50 dark:hover:bg-gray-900/40"}`}
                                                 onClick={() => setSelectedId(item.id)}
                                             >
+                                                <TableCell className="px-5 py-3 text-sm font-semibold text-gray-600 dark:text-gray-300">
+                                                    {startIndex + index + 1}
+                                                </TableCell>
                                                 <TableCell className="px-5 py-3 text-sm font-semibold text-gray-800 dark:text-white/90">
                                                     {item.plate || item.id}
                                                 </TableCell>
@@ -378,7 +382,7 @@ const MonitoringDashboard: React.FC = () => {
                                                     {item.additional?.batt || "-"}
                                                 </TableCell>
                                                 <TableCell className="px-5 py-3 text-sm text-gray-600 dark:text-gray-300">
-                                                    {formatNumber(item.mileage, " km")}
+                                                    {formatNumber((item.mileage || 0) / 1000, " km")}
                                                 </TableCell>
                                                 <TableCell className="px-5 py-3 text-sm text-gray-600 dark:text-gray-300">
                                                     {item.lokasi || "-"}
